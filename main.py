@@ -12,5 +12,5 @@ def index():
 
 
 @app.get('/blog/{id}')
-def get(id):  # is as function param
-    return {'param': int(id)}
+def get(id: int):  # is as function param
+    return {'param': id}
