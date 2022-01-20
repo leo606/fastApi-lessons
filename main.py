@@ -1,16 +1,23 @@
-from ast import parse
-from ftplib import parse257
-from xml.dom.expatbuilder import parseString
+from typing import Optional
 from fastapi import FastAPI
 
 app = FastAPI()
 
 
 @app.get('/')
-def index():
+def getName():
     return {'data': {'name': 'elvis'}}
 
 
+@app.get('/blogs')
+def getBlogs(limit: int = 10,
+             published: bool = True,
+             sort: Optional[str] = None):
+    if published:
+        return {"data": f'{limit} published blogs'}
+    return {'data': f'{limit} not published blogs'}
+
+
 @app.get('/blog/{id}')
-def get(id: int):  # is as function param
-    return {'param': id}
+def getId(id: int, limit: int = 10):  # is as function param
+    return {'param': id, "limit": limit}
