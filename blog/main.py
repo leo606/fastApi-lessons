@@ -33,6 +33,5 @@ def byId(id: int, response: Response, db: Session = Depends(get_db)):
   allBlogs = db.query(models.Blog).filter(models.Blog.id == id).first()
 
   if not allBlogs:
-    response.status_code = status.HTTP_404_NOT_FOUND
-    return f'id {id} not found'
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'blog {id} not found')
   return allBlogs
