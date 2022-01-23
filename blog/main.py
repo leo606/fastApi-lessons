@@ -1,5 +1,3 @@
-from pyexpat import model
-from turtle import title
 from fastapi import FastAPI, Depends, Response, status, HTTPException
 from . import schemas, models
 from .database import engine, SessionLocal
@@ -57,8 +55,8 @@ def all(db: Session = Depends(get_db)):
     return blogs
 
 
-@app.get('/blog/{id}', status_code=status.HTTP_200_OK, response_model=schemas.ShowBlog)
-def byId(id: int, response: Response, db: Session = Depends(get_db)):
+@app.get('/blog/{id}', status_code=status.HTTP_200_OK, response_model = schemas.ShowBlog)
+def byId(id: int, db: Session = Depends(get_db)):
     allBlogs = db.query(models.Blog).filter(models.Blog.id == id).first()
 
     if not allBlogs:

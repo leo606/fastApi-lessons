@@ -6,4 +6,5 @@ class Blog(BaseModel):
   body: str
 
 class ShowBlog(Blog):
-  pass
+  class Config():
+    orm_mode = True
