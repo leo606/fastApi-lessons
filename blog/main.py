@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import FastAPI, Depends, Response, status, HTTPException
 from . import schemas, models
 from .database import engine, SessionLocal
@@ -49,7 +50,7 @@ def update(id, req: schemas.Blog, db: Session = Depends(get_db)):
     return 'updated'
 
 
-@app.get('/blog', status_code=status.HTTP_200_OK)
+@app.get('/blog', status_code=status.HTTP_200_OK, response_model=List[schemas.ShowBlog])
 def all(db: Session = Depends(get_db)):
     blogs = db.query(models.Blog).all()
     return blogs
@@ -63,3 +64,7 @@ def byId(id: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f'blog {id} not found')
     return allBlogs
+
+@app.post('/user', status_code=status.HTTP_201_CREATED)
+def createUser(req: schemas.User, db: Session = Depends(get_db)):
+  return req
