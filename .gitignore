@@ -154,3 +154,4 @@ cython_debug/
 __pycache__
 fast-api-env
 .DS_Store
+blog.db
