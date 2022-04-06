@@ -3,6 +3,7 @@ from fastapi import FastAPI, Depends, Response, status, HTTPException
 from . import schemas, models
 from .database import engine, SessionLocal
 from sqlalchemy.orm import Session
+from passlib.context import CryptContext
 
 models.Base.metadata.create_all(engine)
 
@@ -17,7 +18,7 @@ def get_db():
         db.close()
 
 
-@app.post('/blog', status_code=status.HTTP_201_CREATED)
+@app.post("/blog", status_code=status.HTTP_201_CREATED)
 def create(req: schemas.Blog, db: Session = Depends(get_db)):
     new_blog = models.Blog(title=req.title, body=req.body)
     db.add(new_blog)
@@ -26,55 +27,72 @@ def create(req: schemas.Blog, db: Session = Depends(get_db)):
     return new_blog
 
 
-@app.delete('/blog/{id}', status_code=status.HTTP_204_NO_CONTENT)
+@app.delete("/blog/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def remove(id, db: Session = Depends(get_db)):
-    blog = db.query(models.Blog).filter(models.Blog.id == id).delete(
-        synchronize_session=False)
+    blog = (
+        db.query(models.Blog)
+        .filter(models.Blog.id == id)
+        .delete(synchronize_session=False)
+    )
     if not blog:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f'blog {id} not found')
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"blog {id} not found",
+        )
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.put('/blog/{id}', status_code=status.HTTP_202_ACCEPTED)
+@app.put("/blog/{id}", status_code=status.HTTP_202_ACCEPTED)
 def update(id, req: schemas.Blog, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id)
 
     if not blog.first():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Blog with id {id} not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Blog with id {id} not found",
+        )
 
     blog.update({"title": req.title, "body": req.body})
     db.commit()
-    return 'updated'
+    return "updated"
 
 
-@app.get('/blog',
-         status_code=status.HTTP_200_OK,
-         response_model=List[schemas.ShowBlog])
+@app.get(
+    "/blog",
+    status_code=status.HTTP_200_OK,
+    response_model=List[schemas.ShowBlog],
+)
 def all(db: Session = Depends(get_db)):
     blogs = db.query(models.Blog).all()
     return blogs
 
 
-@app.get('/blog/{id}',
-         status_code=status.HTTP_200_OK,
-         response_model=schemas.ShowBlog)
+@app.get(
+    "/blog/{id}",
+    status_code=status.HTTP_200_OK,
+    response_model=schemas.ShowBlog,
+)
 def byId(id: int, db: Session = Depends(get_db)):
     allBlogs = db.query(models.Blog).filter(models.Blog.id == id).first()
 
     if not allBlogs:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f'blog {id} not found')
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"blog {id} not found",
+        )
     return allBlogs
 
 
-@app.post('/user', status_code=status.HTTP_201_CREATED)
+pwd_ctx = CryptContext(schemes=['bcrypt'], deprecated='auto')
+
+
+@app.post("/user", status_code=status.HTTP_201_CREATED)
 def createUser(req: schemas.User, db: Session = Depends(get_db)):
-    newUser = models.User(name=req.name,
-                          email=req.email,
-                          password=req.password)
+    hashedPassword = pwd_ctx.hash(req.password)
+    newUser = models.User(
+        name=req.name, email=req.email, password=hashedPassword
+    )
     db.add(newUser)
     db.commit()
     db.refresh(newUser)
