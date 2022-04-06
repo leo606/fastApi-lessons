@@ -3,7 +3,7 @@ from fastapi import FastAPI, Depends, Response, status, HTTPException
 from . import schemas, models
 from .database import engine, SessionLocal
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
+from .hashing import Hash
 
 models.Base.metadata.create_all(engine)
 
@@ -84,12 +84,9 @@ def byId(id: int, db: Session = Depends(get_db)):
     return allBlogs
 
 
-pwd_ctx = CryptContext(schemes=['bcrypt'], deprecated='auto')
-
-
 @app.post("/user", status_code=status.HTTP_201_CREATED)
 def createUser(req: schemas.User, db: Session = Depends(get_db)):
-    hashedPassword = pwd_ctx.hash(req.password)
+    hashedPassword = Hash.bcrypt(req.password)
     newUser = models.User(
         name=req.name, email=req.email, password=hashedPassword
     )
