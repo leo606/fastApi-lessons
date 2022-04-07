@@ -84,7 +84,11 @@ def byId(id: int, db: Session = Depends(get_db)):
     return allBlogs
 
 
-@app.post("/user", status_code=status.HTTP_201_CREATED)
+@app.post(
+    "/user",
+    status_code=status.HTTP_201_CREATED,
+    response_model=schemas.ShowUser
+)
 def createUser(req: schemas.User, db: Session = Depends(get_db)):
     hashedPassword = Hash.bcrypt(req.password)
     newUser = models.User(
