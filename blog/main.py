@@ -18,7 +18,7 @@ def get_db():
         db.close()
 
 
-@app.post("/blog", status_code=status.HTTP_201_CREATED)
+@app.post("/blog", status_code=status.HTTP_201_CREATED, tags=["blogs"])
 def create(req: schemas.Blog, db: Session = Depends(get_db)):
     new_blog = models.Blog(title=req.title, body=req.body)
     db.add(new_blog)
@@ -27,7 +27,9 @@ def create(req: schemas.Blog, db: Session = Depends(get_db)):
     return new_blog
 
 
-@app.delete("/blog/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.delete(
+    "/blog/{id}", status_code=status.HTTP_204_NO_CONTENT, tags=["blogs"]
+)
 def remove(id, db: Session = Depends(get_db)):
     blog = (
         db.query(models.Blog)
@@ -43,7 +45,7 @@ def remove(id, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.put("/blog/{id}", status_code=status.HTTP_202_ACCEPTED)
+@app.put("/blog/{id}", status_code=status.HTTP_202_ACCEPTED, tags=["blogs"])
 def update(id, req: schemas.Blog, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id)
 
@@ -62,6 +64,7 @@ def update(id, req: schemas.Blog, db: Session = Depends(get_db)):
     "/blog",
     status_code=status.HTTP_200_OK,
     response_model=List[schemas.ShowBlog],
+    tags=["blogs"],
 )
 def all(db: Session = Depends(get_db)):
     blogs = db.query(models.Blog).all()
@@ -72,6 +75,7 @@ def all(db: Session = Depends(get_db)):
     "/blog/{id}",
     status_code=status.HTTP_200_OK,
     response_model=schemas.ShowBlog,
+    tags=["blogs"],
 )
 def byId(id: int, db: Session = Depends(get_db)):
     allBlogs = db.query(models.Blog).filter(models.Blog.id == id).first()
@@ -87,7 +91,8 @@ def byId(id: int, db: Session = Depends(get_db)):
 @app.post(
     "/user",
     status_code=status.HTTP_201_CREATED,
-    response_model=schemas.ShowUser
+    response_model=schemas.ShowUser,
+    tags=["users"],
 )
 def createUser(req: schemas.User, db: Session = Depends(get_db)):
     hashedPassword = Hash.bcrypt(req.password)
@@ -98,3 +103,14 @@ def createUser(req: schemas.User, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(newUser)
     return newUser
+
+
+@app.get("/user/{id}", response_model=schemas.ShowUser, tags=["users"])
+def get_user(id: int, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"user id {id} not found",
+        )
+    return user
