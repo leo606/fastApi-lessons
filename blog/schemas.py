@@ -4,14 +4,7 @@ from pydantic import BaseModel
 class Blog(BaseModel):
     title: str
     body: str
-
-
-class ShowBlog(BaseModel):
-    title: str
-    body: str
-
-    class Config():
-        orm_mode = True
+    user_id = int
 
 
 class User(BaseModel):
@@ -24,5 +17,14 @@ class ShowUser(BaseModel):
     name: str
     email: str
 
-    class Config():
+    class Config:
+        orm_mode = True
+
+
+class ShowBlog(BaseModel):
+    title: str
+    body: str
+    user = ShowUser
+
+    class Config:
         orm_mode = True
